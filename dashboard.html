@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Study Board</title>
+
+<link rel="stylesheet" href="./main.css">
+<link rel="stylesheet" href="./dashboard.css">
+</head>
+
+<body>
+
+<nav>
+  <a href="main.html"><img src="./Assets/Logo.png" alt="Logo" class="logo"> </a>
+    <button class="darkmode-btn">
+        <img src="./Assets/moon.png" alt="NightMode" class="nightLogo">
+    </button>
+</nav>
+
+<div class="header">
+    <a href="main.html"><img src="./Assets/arrow.png" class="back-btn"> </a>
+    <h2 id="boardName">Study Board</h2>
+</div>
+
+<div class="container">
+
+<div class="card">
+  <div class="row">
+    <img id="userPfp" class="pfp" src="">
+    <span id="username">Guest</span>
+  </div>
+
+  <div class="row">
+    <input id="messageInput" class="input" placeholder="Add a message">
+    <button class="btn" id="sendBtn">Send</button>
+  </div>
+</div>
+</div>
+<script type="module" src="./dashboard.js"></script>
+</body>
+</html>
