@@ -27,29 +27,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   boardName.textContent = `Study Board: ${boardId}`;
 
-  // ✅ SEND MESSAGE
   sendBtn.addEventListener("click", async () => {
     const text = messageInput.value.trim();
-    if (!text) return;
-
+    if (!text) return alert("Message cannot be empty!");
+  
     const user = auth.currentUser;
-    if (!user) {
-      alert("You must be signed in.");
-      return;
-    }
-
+    if (!user) return alert("You must be signed in to send messages.");
+  
     try {
-      await addDoc(collection(db, "messages"), {
-        boardId: boardId,
-        text: text,
-        user: user.displayName || "Anonymous",
-        pfp: user.photoURL || "",
+      await addDoc(collection(db, "studyboards", boardId, "messages"), {
+        text,
+        sender: user.displayName || "Anonymous",
+        senderPhoto: user.photoURL || "",
         timestamp: serverTimestamp(),
       });
-
-      messageInput.value = "";
+      messageInput.value = ""; // Clear input after sending
     } catch (error) {
       console.error("Error sending message:", error);
+      alert("Failed to send message. Please try again.");
     }
   });
 
@@ -90,4 +85,53 @@ document.addEventListener("DOMContentLoaded", () => {
       messagesContainer.appendChild(div);
     });
   });
+});
+
+const messagesContainer = document.getElementById("messages");
+
+onSnapshot(
+  query(collection(db, "studyboards", boardId, "messages"), orderBy("timestamp", "asc")),
+  (snapshot) => {
+    messagesContainer.innerHTML = ""; // Clear existing messages
+    snapshot.forEach((doc) => {
+      const message = doc.data();
+      const messageDiv = document.createElement("div");
+      messageDiv.classList.add("message");
+
+      messageDiv.innerHTML = `
+        <div class="message-header">
+          <img src="${message.senderPhoto}" alt="PFP" class="pfp">
+          <span>${message.sender}</span>
+        </div>
+        <p>${message.text}</p>
+        <div class="reactions">
+          <button>👍</button>
+          <button>❤️</button>
+          <button>😂</button>
+        </div>
+      `;
+      messagesContainer.appendChild(messageDiv);
+    });
+  },
+  (error) => {
+    console.error("Error fetching messages:", error);
+    alert("Failed to load messages.");
+  }
+);
+
+messagesContainer.addEventListener("click", async (e) => {
+  if (e.target.tagName === "BUTTON") {
+    const reaction = e.target.textContent;
+    const messageId = e.target.closest(".message").dataset.id;
+
+    try {
+      const messageRef = doc(db, "studyboards", boardId, "messages", messageId);
+      await updateDoc(messageRef, {
+        reactions: arrayUnion(reaction),
+      });
+    } catch (error) {
+      console.error("Error adding reaction:", error);
+      alert("Failed to add reaction.");
+    }
+  }
 });

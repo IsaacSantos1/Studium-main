@@ -3,6 +3,29 @@ body{
     background-color:#c8d1c1;
   }
   
+  .message {
+    background: #fff;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  .message-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .message-header .pfp {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+  }
+  .reactions button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    margin-right: 5px;
+  }
   
   nav{
     display:flex;
