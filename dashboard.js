@@ -1,16 +1,15 @@
-import { auth, db } from "./firebase-config.js";
 import {
   collection,
   addDoc,
   query,
-  where,
   onSnapshot,
   orderBy,
   serverTimestamp,
   doc,
   updateDoc,
-  arrayUnion,
+  increment,
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { auth, db } from "./firebase-config.js";
 
 const params = new URLSearchParams(window.location.search);
 const boardId = params.get("boardId");
@@ -29,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   boardName.textContent = `Study Board: ${boardId}`;
 
+  // Send a new message
   sendBtn.addEventListener("click", async () => {
     const text = messageInput.value.trim();
     if (!text) return alert("Message cannot be empty!");
@@ -42,25 +42,28 @@ document.addEventListener("DOMContentLoaded", () => {
         sender: user.displayName || "Anonymous",
         senderPhoto: user.photoURL || "",
         timestamp: serverTimestamp(),
-        reactions: [],
+        reactions: {}, // Initialize reactions as an empty object
       });
-      messageInput.value = "";
+      messageInput.value = ""; // Clear input after sending
     } catch (error) {
       console.error("Error sending message:", error);
       alert("Failed to send message. Please try again.");
     }
   });
 
+  // Real-time listener for messages
   onSnapshot(
     query(collection(db, "studyboards", boardId, "messages"), orderBy("timestamp", "asc")),
     (snapshot) => {
-      messagesContainer.innerHTML = "";
+      messagesContainer.innerHTML = ""; // Clear existing messages
       snapshot.forEach((doc) => {
         const message = doc.data();
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message");
-        messageDiv.dataset.id = doc.id;
+        messageDiv.dataset.id = doc.id; // Add message ID for reactions
 
+        // Display message with reactions
+        const reactions = message.reactions || {}; // Default to an empty object if no reactions exist
         messageDiv.innerHTML = `
           <div class="message-header">
             <img src="${message.senderPhoto}" alt="PFP" class="pfp">
@@ -68,12 +71,9 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           <p>${message.text}</p>
           <div class="reactions">
-            <button>👍</button>
-            <button>❤️</button>
-            <button>😂</button>
-            <div class="reaction-counts">
-              ${message.reactions ? message.reactions.join(" ") : ""}
-            </div>
+            <button data-reaction="👍">👍 ${reactions["👍"] || 0}</button>
+            <button data-reaction="❤️">❤️ ${reactions["❤️"] || 0}</button>
+            <button data-reaction="😂">😂 ${reactions["😂"] || 0}</button>
           </div>
         `;
         messagesContainer.appendChild(messageDiv);
@@ -85,15 +85,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   );
 
+  // Handle emoji reactions
   messagesContainer.addEventListener("click", async (e) => {
     if (e.target.tagName === "BUTTON") {
-      const reaction = e.target.textContent;
-      const messageId = e.target.closest(".message").dataset.id;
+      const reaction = e.target.dataset.reaction; // Get the emoji reaction
+      const messageId = e.target.closest(".message").dataset.id; // Get the message ID
 
       try {
         const messageRef = doc(db, "studyboards", boardId, "messages", messageId);
         await updateDoc(messageRef, {
-          reactions: arrayUnion(reaction),
+          [`reactions.${reaction}`]: increment(1), // Increment the count for the specific reaction
         });
       } catch (error) {
         console.error("Error adding reaction:", error);
