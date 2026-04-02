@@ -1,86 +1,93 @@
 import { auth, db } from "./firebase-config.js";
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  onSnapshot,
+  orderBy,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-import { GoogleAuthProvider, signInWithPopup } 
-from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+const params = new URLSearchParams(window.location.search);
+const boardId = params.get("boardId");
 
-import { collection, addDoc, onSnapshot, updateDoc, doc } 
-from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+document.addEventListener("DOMContentLoaded", () => {
+  const messagesContainer = document.getElementById("messages");
+  const sendBtn = document.getElementById("sendBtn");
+  const messageInput = document.getElementById("messageInput");
+  const boardName = document.getElementById("boardName");
 
-let currentUser = null;
-
-// LOGIN
-document.querySelector(".nightLogo").onclick = async () => {
-  const provider = new GoogleAuthProvider();
-  const result = await signInWithPopup(auth, provider);
-
-  currentUser = result.user;
-
-  document.getElementById("username").innerText = currentUser.displayName;
-  document.getElementById("userPfp").src = currentUser.photoURL;
-};
-
-// SEND MESSAGE
-document.getElementById("sendBtn").onclick = async () => {
-  const text = document.getElementById("messageInput").value;
-
-  if (!text || !currentUser) {
-    alert("Login first");
+  // 🚨 Prevent broken page if boardId missing
+  if (!boardId) {
+    alert("Invalid board ID");
+    window.location.href = "main.html";
     return;
   }
 
-  await addDoc(collection(db, "messages"), {
-    text: text,
-    user: currentUser.displayName,
-    pfp: currentUser.photoURL,
-    reactions: {}
+  boardName.textContent = `Study Board: ${boardId}`;
+
+  // ✅ SEND MESSAGE
+  sendBtn.addEventListener("click", async () => {
+    const text = messageInput.value.trim();
+    if (!text) return;
+
+    const user = auth.currentUser;
+    if (!user) {
+      alert("You must be signed in.");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "messages"), {
+        boardId: boardId,
+        text: text,
+        user: user.displayName || "Anonymous",
+        pfp: user.photoURL || "",
+        timestamp: serverTimestamp(),
+      });
+
+      messageInput.value = "";
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
   });
 
-  document.getElementById("messageInput").value = "";
-};
+  // ✅ REALTIME LISTENER (with fallback if index not ready)
+  let q;
 
-// LOAD MESSAGES
-onSnapshot(collection(db, "messages"), (snapshot) => {
-  const container = document.getElementById("messages");
-  container.innerHTML = "";
+  try {
+    q = query(
+      collection(db, "messages"),
+      where("boardId", "==", boardId),
+      orderBy("timestamp", "asc")
+    );
+  } catch {
+    // fallback (no index yet)
+    q = query(
+      collection(db, "messages"),
+      where("boardId", "==", boardId)
+    );
+  }
 
-  snapshot.forEach((docSnap) => {
-    const data = docSnap.data();
+  onSnapshot(q, (snapshot) => {
+    messagesContainer.innerHTML = "";
 
-    const div = document.createElement("div");
-    div.className = "message-box";
+    snapshot.forEach((doc) => {
+      const data = doc.data();
 
-    div.innerHTML = `
-  <div class="row">
-    <img src="${data.pfp}" class="pfp">
-    <b>${data.user}</b>
-  </div>
+      const div = document.createElement("div");
+      div.classList.add("message-box");
 
-  <div class="msg-content">
-    ${data.text}
-  </div>
+      div.innerHTML = `
+        <div class="row">
+          <img class="pfp" src="${data.pfp || ''}">
+          <b>${data.user}</b>
+        </div>
+        <div class="msg-content">${data.text}</div>
+      `;
 
-  <div class="reactions">😀 😍 😂 🔥</div>
-`;
-
-    // REACTIONS
-    div.querySelector(".reactions").onclick = async (e) => {
-      const emoji = e.target.innerText;
-      if (!emoji) return;
-
-      const ref = doc(db, "messages", docSnap.id);
-      const updated = data.reactions || {};
-
-      updated[emoji] = (updated[emoji] || 0) + 1;
-
-      await updateDoc(ref, { reactions: updated });
-    };
-
-    // SHOW COUNTS
-    const reactDiv = div.querySelector(".reactions");
-    reactDiv.innerHTML = Object.entries(data.reactions || {})
-      .map(([k, v]) => `${k} ${v}`)
-      .join(" ");
-
-    container.appendChild(div);
+      messagesContainer.appendChild(div);
+    });
   });
 });

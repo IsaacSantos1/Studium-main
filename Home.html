@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="Home.css">
+</head>
+<body>
+    <nav>
+        <img src="Assets/Logo.png" alt="Logo">
+        <button onclick="changeImage()" id="theme-toggle" class="darkmode-btn">
+            <img src="Assets/moon.png" alt="NightMode" class="nightLogo" id="myImage">
+        </button>
+    </nav>
+    <div class="container">
+        <h1>Stress-Free Studying Starts Here.</h1>
+        <h2>Master Your Schedule, Not Just Your Classes.</h2>
+        <img src="Assets/books.png" alt="books">
+        <div class="loginContainer"> 
+            <h2>Start Today!</h2>
+            <button id="google-sign-in-button">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google icon"/>
+                Sign in with Google
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { signInWithGoogle } from './authService.js';
+
+        document.getElementById('google-sign-in-button').addEventListener('click', () => {
+            signInWithGoogle('main.html');
+        });
+    </script>
+</body>
+</html>

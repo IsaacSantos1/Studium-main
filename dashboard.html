@@ -13,31 +13,38 @@
 <body>
 
 <nav>
-  <a href="main.html"><img src="./Assets/Logo.png" alt="Logo" class="logo"> </a>
-    <button class="darkmode-btn">
-        <img src="./Assets/moon.png" alt="NightMode" class="nightLogo">
-    </button>
+  <a href="main.html">
+    <img src="./Assets/Logo.png" alt="Logo" class="logo">
+  </a>
 </nav>
 
 <div class="header">
-    <a href="main.html"><img src="./Assets/arrow.png" class="back-btn"> </a>
-    <h2 id="boardName">Study Board</h2>
+  <a href="main.html">
+    <img src="./Assets/arrow.png" class="back-btn">
+  </a>
+  <h2 id="boardName">Study Board</h2>
 </div>
 
 <div class="container">
 
-<div class="card">
-  <div class="row">
-    <img id="userPfp" class="pfp" src="">
-    <span id="username">Guest</span>
+  <!-- INPUT -->
+  <div class="card">
+    <div class="row">
+      <img id="userPfp" class="pfp" src="">
+      <span id="username">Guest</span>
+    </div>
+
+    <div class="row">
+      <input id="messageInput" class="input" placeholder="Add a message">
+      <button class="btn" id="sendBtn">Send</button>
+    </div>
   </div>
 
-  <div class="row">
-    <input id="messageInput" class="input" placeholder="Add a message">
-    <button class="btn" id="sendBtn">Send</button>
-  </div>
+  <!-- ✅ MESSAGES -->
+  <div id="messages" class="messages"></div>
+
 </div>
-</div>
+
 <script type="module" src="./dashboard.js"></script>
 </body>
 </html>
