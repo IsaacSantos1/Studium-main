@@ -28,60 +28,82 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function displayStudyBoards(user) {
     const q = query(
       collection(db, "studyboards"),
-      where("owner", "==", user.email)
+      where("members", "array-contains", user.email) // Check if the user is in the members array
     );
-
+  
     const querySnapshot = await getDocs(q);
     studyboardsList.innerHTML = "";
-
+  
     querySnapshot.forEach((docSnap) => {
       const board = docSnap.data();
-
+  
       const li = document.createElement("li");
       li.textContent = board.name;
-
+  
       li.addEventListener("click", () => {
         window.location.href = `dashboard.html?boardId=${docSnap.id}`;
       });
-
+  
       studyboardsList.appendChild(li);
     });
   }
 
-  // CREATE
-  createBtn.addEventListener("click", async (e) => {
-    e.preventDefault();
+// CREATE
+createBtn.addEventListener("click", async (e) => {
+  e.preventDefault();
 
-    const name = document.getElementById("name").value.trim();
-    if (!name) return;
+  const name = document.getElementById("name").value.trim();
+  if (!name) return;
 
-    const user = auth.currentUser;
+  const user = auth.currentUser;
 
+  try {
     await addDoc(collection(db, "studyboards"), {
       name,
       owner: user.email,
+      members: [user.email], // Add the creator to the members array
       timestamp: new Date(),
     });
 
-    alert("Created!");
-    await displayStudyBoards(user);
-  });
+    alert("Studyboard created!");
+    await displayStudyBoards(user); // Refresh the studyboards list
+  } catch (error) {
+    console.error("Error creating studyboard:", error);
+    alert("Failed to create studyboard. Please try again.");
+  }
+});
 
-  // JOIN
-  joinBtn.addEventListener("click", async (e) => {
-    e.preventDefault();
+// JOIN
+joinBtn.addEventListener("click", async (e) => {
+  e.preventDefault();
 
-    const boardId = document.getElementById("ID").value.trim();
-    if (!boardId) return;
+  const boardId = document.getElementById("ID").value.trim();
+  if (!boardId) return;
 
-    const docRef = doc(db, "studyboards", boardId);
-    const docSnap = await getDoc(docRef);
+  const user = auth.currentUser;
+  if (!user) {
+    alert("You must be signed in to join a studyboard.");
+    return;
+  }
 
-    if (!docSnap.exists()) {
-      alert("Board not found");
-      return;
-    }
+  const docRef = doc(db, "studyboards", boardId);
+  const docSnap = await getDoc(docRef);
 
-    window.location.href = `dashboard.html?boardId=${boardId}`;
-  });
+  if (!docSnap.exists()) {
+    alert("Board not found");
+    return;
+  }
+
+  try {
+    // Add the user to the members array
+    await updateDoc(docRef, {
+      members: arrayUnion(user.email),
+    });
+
+    alert("Successfully joined the studyboard!");
+    await displayStudyBoards(user); // Refresh the studyboards list
+  } catch (error) {
+    console.error("Error joining studyboard:", error);
+    alert("Failed to join the studyboard. Please try again.");
+  }
 });
