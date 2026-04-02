@@ -26,7 +26,11 @@ body{
     cursor: pointer;
     margin-right: 5px;
   }
-  
+  .reaction-counts {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #555;
+  }
   nav{
     display:flex;
     justify-content:space-between;
