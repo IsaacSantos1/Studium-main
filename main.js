@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       userStatus.textContent = `Welcome, ${user.displayName || "User"}!`;
       await displayStudyBoards(user);
     } else {
-      window.location.href = "home.html";
+      window.location.href = "Home.html"; // ✅ FIXED
     }
   });
 
@@ -48,7 +48,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // CREATE
   createBtn.addEventListener("click", async (e) => {
     e.preventDefault();
 
@@ -67,7 +66,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     await displayStudyBoards(user);
   });
 
-  // JOIN
   joinBtn.addEventListener("click", async (e) => {
     e.preventDefault();
 

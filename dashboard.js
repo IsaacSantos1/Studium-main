@@ -9,6 +9,8 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
 const params = new URLSearchParams(window.location.search);
 const boardId = params.get("boardId");
 
@@ -18,7 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const messageInput = document.getElementById("messageInput");
   const boardName = document.getElementById("boardName");
 
-  // 🚨 Prevent broken page if boardId missing
   if (!boardId) {
     alert("Invalid board ID");
     window.location.href = "main.html";
@@ -27,13 +28,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
   boardName.textContent = `Study Board: ${boardId}`;
 
+  let currentUser = null;
+
+  // ✅ AUTH STATE (fixes null user issue + sets UI)
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+
+      document.getElementById("username").textContent =
+        user.displayName || "Anonymous";
+
+      document.getElementById("userPfp").src =
+        user.photoURL || "";
+    } else {
+      window.location.href = "Home.html";
+    }
+  });
+
   // ✅ SEND MESSAGE
   sendBtn.addEventListener("click", async () => {
     const text = messageInput.value.trim();
     if (!text) return;
 
-    const user = auth.currentUser;
-    if (!user) {
+    if (!currentUser) {
       alert("You must be signed in.");
       return;
     }
@@ -42,8 +59,8 @@ document.addEventListener("DOMContentLoaded", () => {
       await addDoc(collection(db, "messages"), {
         boardId: boardId,
         text: text,
-        user: user.displayName || "Anonymous",
-        pfp: user.photoURL || "",
+        user: currentUser.displayName || "Anonymous",
+        pfp: currentUser.photoURL || "",
         timestamp: serverTimestamp(),
       });
 
@@ -53,22 +70,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ✅ REALTIME LISTENER (with fallback if index not ready)
-  let q;
-
-  try {
-    q = query(
-      collection(db, "messages"),
-      where("boardId", "==", boardId),
-      orderBy("timestamp", "asc")
-    );
-  } catch {
-    // fallback (no index yet)
-    q = query(
-      collection(db, "messages"),
-      where("boardId", "==", boardId)
-    );
-  }
+  // ✅ REALTIME LISTENER (requires Firestore index)
+  const q = query(
+    collection(db, "messages"),
+    where("boardId", "==", boardId),
+    orderBy("timestamp", "asc")
+  );
 
   onSnapshot(q, (snapshot) => {
     messagesContainer.innerHTML = "";
