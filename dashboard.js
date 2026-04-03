@@ -1,4 +1,3 @@
-import { auth, db } from "./firebase-config.js";
 import {
   collection,
   addDoc,
@@ -6,9 +5,13 @@ import {
   where,
   onSnapshot,
   orderBy,
-  serverTimestamp
+  serverTimestamp,
+  doc,
+  updateDoc,
+  increment
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
+import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const params = new URLSearchParams(window.location.search);
@@ -30,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentUser = null;
 
-  // ✅ AUTH STATE (fixes null user issue + sets UI)
+  // ✅ AUTH STATE
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentUser = user;
@@ -57,11 +60,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       await addDoc(collection(db, "messages"), {
-        boardId: boardId,
-        text: text,
+        boardId,
+        text,
         user: currentUser.displayName || "Anonymous",
         pfp: currentUser.photoURL || "",
         timestamp: serverTimestamp(),
+        reactions: {}
       });
 
       messageInput.value = "";
@@ -70,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ✅ REALTIME LISTENER (requires Firestore index)
+  // ✅ REALTIME MESSAGES
   const q = query(
     collection(db, "messages"),
     where("boardId", "==", boardId),
@@ -80,11 +84,14 @@ document.addEventListener("DOMContentLoaded", () => {
   onSnapshot(q, (snapshot) => {
     messagesContainer.innerHTML = "";
 
-    snapshot.forEach((doc) => {
-      const data = doc.data();
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
 
       const div = document.createElement("div");
-      div.classList.add("message-box");
+      div.classList.add("message");
+      div.dataset.id = docSnap.id;
+
+      const reactions = data.reactions || {};
 
       div.innerHTML = `
         <div class="row">
@@ -92,9 +99,32 @@ document.addEventListener("DOMContentLoaded", () => {
           <b>${data.user}</b>
         </div>
         <div class="msg-content">${data.text}</div>
+
+        <div class="reactions">
+          <button data-reaction="👍">👍 ${reactions["👍"] || 0}</button>
+          <button data-reaction="❤️">❤️ ${reactions["❤️"] || 0}</button>
+        </div>
       `;
 
       messagesContainer.appendChild(div);
     });
+  });
+
+  // ✅ HANDLE REACTIONS
+  messagesContainer.addEventListener("click", async (e) => {
+    if (e.target.tagName === "BUTTON") {
+      const reaction = e.target.dataset.reaction;
+      const messageId = e.target.closest(".message").dataset.id;
+
+      try {
+        const messageRef = doc(db, "messages", messageId);
+
+        await updateDoc(messageRef, {
+          [`reactions.${reaction}`]: increment(1),
+        });
+      } catch (error) {
+        console.error("Reaction error:", error);
+      }
+    }
   });
 });

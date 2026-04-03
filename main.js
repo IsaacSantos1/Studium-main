@@ -7,10 +7,12 @@ import {
   getDocs,
   addDoc,
   doc,
-  getDoc
+  getDoc,
+  updateDoc,
+  arrayUnion
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
   const userStatus = document.querySelector("nav h3");
   const createBtn = document.getElementById("createBtn");
   const joinBtn = document.getElementById("joinBtn");
@@ -21,14 +23,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       userStatus.textContent = `Welcome, ${user.displayName || "User"}!`;
       await displayStudyBoards(user);
     } else {
-      window.location.href = "Home.html"; // ✅ FIXED
+      window.location.href = "Home.html";
     }
   });
 
   async function displayStudyBoards(user) {
     const q = query(
       collection(db, "studyboards"),
-      where("owner", "==", user.email)
+      where("members", "array-contains", user.email)
     );
 
     const querySnapshot = await getDocs(q);
@@ -48,6 +50,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // ✅ CREATE BOARD
   createBtn.addEventListener("click", async (e) => {
     e.preventDefault();
 
@@ -56,21 +59,34 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const user = auth.currentUser;
 
-    await addDoc(collection(db, "studyboards"), {
-      name,
-      owner: user.email,
-      timestamp: new Date(),
-    });
+    try {
+      await addDoc(collection(db, "studyboards"), {
+        name,
+        owner: user.email,
+        members: [user.email],
+        timestamp: new Date(),
+      });
 
-    alert("Created!");
-    await displayStudyBoards(user);
+      alert("Studyboard created!");
+      await displayStudyBoards(user);
+    } catch (error) {
+      console.error("Error creating studyboard:", error);
+      alert("Failed to create studyboard.");
+    }
   });
 
+  // ✅ JOIN BOARD
   joinBtn.addEventListener("click", async (e) => {
     e.preventDefault();
 
     const boardId = document.getElementById("ID").value.trim();
     if (!boardId) return;
+
+    const user = auth.currentUser;
+    if (!user) {
+      alert("You must be signed in.");
+      return;
+    }
 
     const docRef = doc(db, "studyboards", boardId);
     const docSnap = await getDoc(docRef);
@@ -80,6 +96,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    window.location.href = `dashboard.html?boardId=${boardId}`;
+    try {
+      await updateDoc(docRef, {
+        members: arrayUnion(user.email),
+      });
+
+      alert("Joined successfully!");
+      await displayStudyBoards(user);
+    } catch (error) {
+      console.error("Error joining board:", error);
+      alert("Failed to join board.");
+    }
   });
 });
