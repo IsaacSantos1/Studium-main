@@ -20,7 +20,7 @@ function enableDarkMode() {
     container.classList.add(darkModeClass);
     localStorage.setItem(localStorageKey, 'dark');
 
-    document.getElementById("myImage").src = "Assets/sun.png"; // ✅ FIX
+    document.getElementById("myImage").src = "Assets/sun.png"; 
 }
 
 function disableDarkMode() {
@@ -29,7 +29,7 @@ function disableDarkMode() {
     container.classList.remove(darkModeClass);
     localStorage.setItem(localStorageKey, 'light');
 
-    document.getElementById("myImage").src = "Assets/moon.png"; // ✅ FIX
+    document.getElementById("myImage").src = "Assets/moon.png"; 
 }
 
 function toggleTheme() {

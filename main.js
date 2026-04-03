@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ✅ CREATE BOARD
+  
   createBtn.addEventListener("click", async (e) => {
     e.preventDefault();
 
@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ✅ JOIN BOARD
+  
   joinBtn.addEventListener("click", async (e) => {
     e.preventDefault();
 

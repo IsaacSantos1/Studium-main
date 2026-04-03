@@ -5,7 +5,7 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.1/firebase
 
 
 
-// Your web app's Firebase configuration
+
 const firebaseConfig = {
     apiKey: "AIzaSyBC4NIvm_xJhsZu4BbawHMw8eFFOD_IUH8",
     authDomain: "studyboard-cf9dc.firebaseapp.com",
@@ -17,9 +17,9 @@ const firebaseConfig = {
  
 
 
-// Initialize Firebase outside the event listener
+
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app); // Ensure auth is initialized from the app
+const auth = getAuth(app); 
 const db = getFirestore(app);
 
 

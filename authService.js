@@ -22,7 +22,7 @@ export async function signOutUser() {
   try {
     await signOut(auth);
     console.log("User signed out.");
-    window.location.href = "Home.html"; // ✅ FIXED
+    window.location.href = "Home.html"; 
   } catch (error) {
     console.error("Sign-Out Error:", error);
     alert("Failed to sign out. Please try again.");

@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   boardName.textContent = `Study Board: ${boardId}`;
 
-  // Listen for auth changes to set current user
+
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentUser = user;
@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Send a new message
+
   sendBtn.addEventListener("click", async () => {
     const text = messageInput.value.trim();
     if (!text) return alert("Message cannot be empty!");
@@ -66,16 +66,16 @@ document.addEventListener("DOMContentLoaded", () => {
         user: currentUser.displayName || "Anonymous",
         pfp: currentUser.photoURL || "",
         timestamp: serverTimestamp(),
-        reactions: {}, // Initialize reactions as an empty object
+        reactions: {}, 
       });
-      messageInput.value = ""; // Clear input after sending
+      messageInput.value = "";
     } catch (error) {
       console.error("Error sending message:", error);
       alert("Failed to send message. Please try again.");
     }
   });
 
-  // ✅ REALTIME LISTENER with proper query
+
   const q = query(
     collection(db, "messages"),
     where("boardId", "==", boardId),
@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const reactionsDiv = document.createElement("div");
       reactionsDiv.className = "reactions";
 
-      // Render reaction buttons
+  
       const emojis = ["👍", "❤️", "😂", "😮"];
       emojis.forEach((emoji) => {
         const btn = document.createElement("button");
@@ -121,16 +121,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const reactions = msg.reactions || {};
         const reactionData = reactions[emoji];
         
-        // Handle both old format (number) and new format (array)
         let count = 0;
         let userReacted = false;
         
         if (Array.isArray(reactionData)) {
-          // New format: array of user emails
+   
           count = reactionData.length;
           userReacted = currentUser && reactionData.includes(currentUser.email);
         }
-        // If it's a number (old format), just ignore it - it will be overwritten when anyone reacts
         
         btn.textContent = emoji;
         if (userReacted) {
@@ -152,7 +150,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Handle emoji reactions with toggle functionality
   messagesContainer.addEventListener("click", async (e) => {
     if (e.target.tagName === "BUTTON") {
       if (!currentUser) {
@@ -169,17 +166,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const messageDoc = await getDoc(messageRef);
         const reactions = messageDoc.data().reactions || {};
 
-        // Get current reaction array for this emoji
+ 
         const currentReactions = reactions[reaction] || [];
         
-        // Check if user already reacted
+ 
         if (currentReactions.includes(currentUser.email)) {
-          // Remove the reaction (toggle off)
           await updateDoc(messageRef, {
             [`reactions.${reaction}`]: arrayRemove(currentUser.email),
           });
         } else {
-          // Add the reaction (toggle on)
+
           await updateDoc(messageRef, {
             [`reactions.${reaction}`]: arrayUnion(currentUser.email),
           });
