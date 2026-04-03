@@ -13,18 +13,38 @@ body{
   .message-header {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    margin-bottom: 12px;
   }
   .message-header .pfp {
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
   }
+  .message-header span {
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .reactions {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
   .reactions button {
     background: transparent;
-    border: none;
+    border: 1px solid #999;
     cursor: pointer;
-    margin-right: 5px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: all 0.2s;
+  }
+  
+  .reactions button:hover {
+    background-color: rgba(185, 150, 125, 0.2);
   }
   .reaction-counts {
     margin-top: 5px;
@@ -40,14 +60,7 @@ body{
     height:50px;
   }
   
-  .logo{
-    height:50px;
-   
-  }
-  
-  .nightLogo{
-    height:50px;
-  }
+
   
   .darkmode-btn{
     background:transparent;
@@ -89,6 +102,11 @@ body{
     display:flex;
     gap:10px;
     align-items:center;
+    margin-bottom: 15px;
+  }
+  
+  .row:last-child {
+    margin-bottom: 0;
   }
   
   .pfp{
@@ -123,24 +141,25 @@ body{
   
   .messages {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 15px;
   margin-top: 20px;
 }
 
 .message-box {
-  background: #d7ddcd;
-  border-radius: 12px;
-  padding: 12px;
-  max-width: 220px;
-
+  background: #D5DDCD;
+  border-radius: 16px;
+  padding: 18px;
+  max-width: 100%;
+  min-height: 180px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
 .msg-content {
   background: #b9967d;
-  border-radius: 8px;
-  padding: 10px;
-  margin-top: 8px;
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 10px;
   text-align: center;
+  font-size: 18px;
 }
